@@ -15,7 +15,8 @@
 | 🚀 **Smart Caching** | Per-user, per-page cache keys using Django's cache framework |
 | 📄 **Pagination** | Configurable page-size pagination on all list endpoints |
 | 🗄️ **Media Handling** | `ImageField` / `FileField` with automatic file serving in development |
-| 🛡️ **Role-based Users** | Built-in `MODERATOR` / `USER` roles on the custom User model |
+| 🛡️ **Role-based Permissions** | Custom DRF permissions for `MODERATOR` and `USER` roles |
+| 💬 **Real-time Chat** | Scalable WebSocket chat with Django Channels and Redis |
 
 ---
 
@@ -210,6 +211,42 @@ Reel.objects.select_related('user__user').filter(user__user=request.user)  # 2 l
 
 ---
 
+### 9. 🔌 Scalable WebSockets with Channels & Redis
+
+Real-time bidirectional communication is handled via Django Channels. Instead of storing socket connections purely in-memory (which doesn't scale across multiple servers), it uses `channels_redis` as a channel layer backend to broadcast messages to `ChatRoom` groups across instances.
+
+```python
+# chat/consumers.py
+async def receive(self, text_data):
+    # Save to DB asynchronously
+    saved_msg = await self.save_message(self.room, self.user, message)
+    
+    # Broadcast through Redis layer
+    await self.channel_layer.group_send(
+        self.room_group_name,
+        { 'type': 'chat_message', 'message': message, ... }
+    )
+```
+
+---
+
+### 10. 🛂 Custom Permissions
+
+Endpoints and consumers are guarded by custom DRF permissions (`IsCustomer`, `IsModeratorAndCustomer`) that enforce role-based access checks, ensuring that users can only interact with APIs appropriate for their roles.
+
+```python
+# social_media/permissions.py
+class IsModeratorAndCustomer(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role in ['MODERATOR', 'USER']
+
+# chat/views.py
+class RoomListAPI(generics.ListAPIView):
+    permission_classes = [IsModeratorAndCustomer]
+```
+
+---
+
 ## 🛣️ API Reference
 
 ### 🔑 Authentication  (`/auth/`)
@@ -238,6 +275,14 @@ Reel.objects.select_related('user__user').filter(user__user=request.user)  # 2 l
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | `POST` | `/core/follow/<profile_id>/` | ✅ JWT | Follow a user by their Profile ID |
+
+### 💬 Chat (`/chat/`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/chat/rooms/` | ✅ JWT | List all chat rooms the user is part of |
+| `GET` | `/chat/rooms/<room_id>/messages/` | ✅ JWT | Paginated message history for a specific room |
+| `WS` | `ws://<host>/ws/chat/<room_id>/?token=<jwt>` | ✅ JWT | Real-time WebSocket connection for chat |
 
 ---
 
@@ -331,7 +376,7 @@ Client                     Django                  DB / Cache
 
 ## 🗺️ Roadmap
 
-- [ ] 💬 **Chat Module** — Real-time messaging (WebSocket via Django Channels)
+- [x] 💬 **Chat Module** — Real-time messaging (WebSocket via Django Channels)
 - [ ] ❤️ **Likes & Comments** — Engagement on Posts and Reels
 - [ ] 🔔 **Notifications** — Follow and engagement alerts
 - [ ] 🔍 **Search** — Full-text search on profiles and posts
@@ -345,10 +390,11 @@ Client                     Django                  DB / Cache
 | Layer | Technology |
 |---|---|
 | Framework | Django 5.2 |
+| Real-time | Django Channels + `channels_redis` |
 | API | Django REST Framework |
 | Auth | `djangorestframework-simplejwt` (JWT) |
 | Database | SQLite (dev) / PostgreSQL (prod-ready) |
-| Caching | Django Cache Framework (in-memory / Redis-ready) |
+| Caching | Django Cache Framework / Redis |
 | Media | Django `FileField` / `ImageField` + Pillow |
 | Language | Python 3 |
 
