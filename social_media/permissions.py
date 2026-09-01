@@ -7,7 +7,7 @@ class IsModerator(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role==User.Moderator
 
-class IsModerator(BasePermission):
+class IsCustomer(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role==User.Customer
 

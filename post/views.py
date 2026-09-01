@@ -10,8 +10,10 @@ from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from .cache_key import post_cache_key, reel_cache_key
 from django.core.cache import cache
+from social_media.permissions import IsCustomer, IsModeratorAndCustomer, IsModerator
 
 class PostFeedAPI(ListAPIView):
+    permission_classes=[IsModeratorAndCustomer]
     serializer_class=PostSerializer
     queryset=Post.objects.select_related('user').all().order_by('-created_on')
     pagination_class=GeneralReelAndPostPagination
@@ -21,6 +23,7 @@ class PostFeedAPI(ListAPIView):
         return super().get(request, *args, **kwargs)
 
 class ReelFeedAPI(ListAPIView):
+    permission_classes=[IsModeratorAndCustomer]
     serializer_class=ReelSerializer
     queryset=Reel.objects.select_related('user').all().order_by('-created_on')
     pagination_class=GeneralReelAndPostPagination
@@ -30,6 +33,10 @@ class ReelFeedAPI(ListAPIView):
         return super().get(request, *args, **kwargs)
 
 class MyPostAPI(APIView):
+    def get_permissions(self):
+        if self.request.method=='POST':
+            return [IsCustomer()]
+        return [IsModeratorAndCustomer()]
     def get(self, request):
         page_no=request.query_params.get("page", "1")
         key=post_cache_key(page=page_no, user_id=request.user.id)
@@ -55,6 +62,10 @@ class MyPostAPI(APIView):
         return Response(serial.errors, status=400)
 
 class MyReelAPI(APIView):
+    def get_permissions(self):
+        if self.request.method=='POST':
+            return [IsCustomer()]
+        return [IsModeratorAndCustomer()]
     def get(self, request):
         page_no=request.query_params.get("page","1")
         key=reel_cache_key(page=page_no, user_id=request.user.id)

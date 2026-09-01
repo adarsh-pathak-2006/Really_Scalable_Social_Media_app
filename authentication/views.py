@@ -10,7 +10,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView
 from social_media.pagination import GeneralReelAndPostPagination
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
-
+from social_media.permissions import IsModerator, IsCustomer, IsModeratorAndCustomer
 
 User=get_user_model()
 
@@ -35,12 +35,17 @@ class RegisterAPI(APIView):
         return Response(serial.errors, status=400)
 
 class MyProfileAPI(RetrieveUpdateAPIView):
+    def get_permissions(self):
+        if self.request.method=='GET':
+            return [IsModeratorAndCustomer()]
+        return [IsCustomer()]
     serializer_class=ProfileSerializer
 
     def get_object(self):
         return get_object_or_404(Profile.objects.select_related('user'), user=self.request.user)
 
 class AllProfileAPI(ListAPIView):
+    permission_classes=[IsModeratorAndCustomer]
     serializer_class=ProfileSerializer
     queryset=Profile.objects.select_related('user').all()
     pagination_class=GeneralReelAndPostPagination
