@@ -3,8 +3,10 @@ from .models import ChatRoom, Message
 from .serializers import ChatRoomSerializer, MessageSerializer
 from authentication.models import Profile
 from social_media.pagination import GeneralReelAndPostPagination
+from social_media.permissions import IsModeratorAndCustomer
 
 class RoomListAPI(generics.ListAPIView):
+    permission_classes = [IsModeratorAndCustomer]
     serializer_class = ChatRoomSerializer
     pagination_class = GeneralReelAndPostPagination
     
@@ -16,6 +18,7 @@ class RoomListAPI(generics.ListAPIView):
             return ChatRoom.objects.none()
 
 class MessageHistoryAPI(generics.ListAPIView):
+    permission_classes = [IsModeratorAndCustomer]
     serializer_class = MessageSerializer
     pagination_class = GeneralReelAndPostPagination
     

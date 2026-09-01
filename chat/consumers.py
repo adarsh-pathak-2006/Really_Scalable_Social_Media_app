@@ -10,7 +10,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f'chat_{self.room_name}'
         self.user = self.scope['user']
 
-        if self.user.is_anonymous:
+        if self.user.is_anonymous or self.user.role not in ['MODERATOR', 'USER']:
             await self.close()
             return
 
