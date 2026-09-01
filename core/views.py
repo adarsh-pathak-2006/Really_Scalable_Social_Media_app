@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from .models import Follow
 from authentication.models import Profile
 from rest_framework.views import APIView
@@ -6,4 +6,7 @@ from rest_framework.response import Response
 
 class FollowAPI(APIView):
     def post(self, request, pk):
-        
+        myprofile_data=get_object_or_404(Profile.objects.select_related('user'), user=request.user)
+        personprofile_data=get_object_or_404(Profile, id=pk)
+        Follow.objects.create(follower=myprofile_data, following=personprofile_data)
+        return Response({'message':'followed the user'})
