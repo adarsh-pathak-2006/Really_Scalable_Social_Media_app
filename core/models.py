@@ -10,4 +10,4 @@ class Follow(models.Model):
         constraints=[models.UniqueConstraint(fields=['follower', 'following'], name='unique_follower_following')]
 
     def __str__(self):
-        return self.user.name
+        return f"{self.follower} follows {self.following}"
