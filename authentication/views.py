@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from .serializers import RegisterSerializer, ProfileSerializer
 from django.db.models import Q
 from django.db import transaction
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView
 
 User=get_user_model()
 
@@ -32,3 +32,7 @@ class MyProfileAPI(RetrieveUpdateAPIView):
 
     def get_object(self):
         return get_object_or_404(Profile.objects.select_related('user'), user=self.request.user)
+
+class AllProfileAPI(ListAPIView):
+    serializer_class=ProfileSerializer
+    queryset=Profile.objects.select_related('user').all()
