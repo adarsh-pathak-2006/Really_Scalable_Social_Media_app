@@ -11,21 +11,29 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Initialize environ
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+# Take environment variables from .env file
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q9x^@v#0gcvv7v&!x!3ch9yol!y17q+b8k!0(k7$*72g7%fsvk'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
 AUTH_USER_MODEL="authentication.User"
 # Application definition
@@ -79,10 +87,7 @@ WSGI_APPLICATION = 'social_media.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db('DATABASE_URL', default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 }
 
 
@@ -127,7 +132,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -144,7 +148,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [env('REDIS_URL', default='redis://127.0.0.1:6379/0')],
         },
     },
 }
