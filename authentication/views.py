@@ -14,7 +14,10 @@ from django.utils.decorators import method_decorator
 
 User=get_user_model()
 
+from rest_framework.permissions import AllowAny
+
 class RegisterAPI(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serial=RegisterSerializer(data=request.data)
         if serial.is_valid():

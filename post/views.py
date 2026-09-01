@@ -13,7 +13,7 @@ from django.core.cache import cache
 
 class PostFeedAPI(ListAPIView):
     serializer_class=PostSerializer
-    queryset=Post.objects.select_related('user').all().filter('-created_on')
+    queryset=Post.objects.select_related('user').all().order_by('-created_on')
     pagination_class=GeneralReelAndPostPagination
 
     @method_decorator(cache_page(60 * 5))
@@ -22,7 +22,7 @@ class PostFeedAPI(ListAPIView):
 
 class ReelFeedAPI(ListAPIView):
     serializer_class=ReelSerializer
-    queryset=Reel.objects.select_related('user').all().filter('-created_on')
+    queryset=Reel.objects.select_related('user').all().order_by('-created_on')
     pagination_class=GeneralReelAndPostPagination
 
     @method_decorator(cache_page(60 * 5))
