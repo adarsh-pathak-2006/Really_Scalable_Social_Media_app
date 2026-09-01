@@ -10,6 +10,11 @@ class UserGetSerializer(ModelSerializer):
         model=User
         fields=['username', 'role']
 
+class RegisterSerializer(ModelSerializer):
+    class Meta:
+        model=User
+        fields=['username', 'email', 'mobile_no', 'password']
+
 class ProfileSerializer(ModelSerializer):
     user=UserGetSerializer(read_only=True)
     class Meta:
