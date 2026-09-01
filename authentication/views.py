@@ -7,6 +7,10 @@ from .serializers import RegisterSerializer, ProfileSerializer
 from django.db.models import Q
 from django.db import transaction
 from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView
+from social_media.pagination import GeneralReelAndPostPagination
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+
 
 User=get_user_model()
 
@@ -36,3 +40,8 @@ class MyProfileAPI(RetrieveUpdateAPIView):
 class AllProfileAPI(ListAPIView):
     serializer_class=ProfileSerializer
     queryset=Profile.objects.select_related('user').all()
+    pagination_class=GeneralReelAndPostPagination
+
+    @method_decorator(cache_page(60 * 5))
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
